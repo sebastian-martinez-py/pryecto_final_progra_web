@@ -12,7 +12,7 @@ load_dotenv()  # CHANGE: carga .env si existe
 # En local puedes usar SQLite: sqlite:///./app.db
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "mysql+pymysql://root:example@db/proyecto_web"
+    "mysql+pymysql://root:Coco197209@127.0.0.1:3306/TrabjoFinal"
 )
 
 engine = create_engine(DATABASE_URL, pool_pre_ping=True, future=True)
