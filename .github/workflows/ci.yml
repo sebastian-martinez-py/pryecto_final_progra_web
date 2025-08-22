@@ -1,0 +1,21 @@
+# .github/workflows/ci.yml
+# NEW: pipeline CI mínimo (puedes ampliarlo con tests)
+
+name: CI
+on: [push, pull_request]
+jobs:
+  build-and-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r Backend/requirements.txt
+      - run: python - <<'PY'
+import importlib
+for m in ["fastapi","uvicorn","sqlalchemy"]:
+    importlib.import_module(m)
+print("Deps OK")
+PY
+

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Proyecto Final – Programación Web</title>
+
+  <!-- Tailwind por CDN (para la entrega; en producción puedes compilarlo) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <meta name="description" content="Frontend mínimo para consumir API externa (slideshow) y API local (items procesados) del Proyecto Final." />
+</head>
+<body class="bg-slate-50 text-slate-900">
+  <!-- Header -->
+  <header class="bg-white border-b">
+    <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+      <h1 class="text-xl md:text-2xl font-bold">Proyecto Final – Programación Web</h1>
+      <nav class="text-sm text-slate-600">
+        <a href="/docs" class="hover:text-slate-900 underline">Swagger /docs</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Contenido -->
+  <main class="max-w-5xl mx-auto px-4 py-8 space-y-10">
+    <!-- Sección: Galería con API externa -->
+    <section>
+      <h2 class="text-2xl font-semibold mb-4">Galería (API externa: Dog CEO)</h2>
+
+      <div class="flex items-center gap-3">
+        <button id="prev-image" class="px-3 py-2 border rounded-lg bg-white hover:bg-slate-50">◀</button>
+
+        <div class="flex-1">
+          <div class="aspect-[16/9] w-full overflow-hidden rounded-2xl bg-slate-200">
+            <img id="slide-image" src="" alt="slide" class="w-full h-full object-cover" />
+          </div>
+          <p class="mt-2 text-sm text-slate-600">
+            * Las imágenes se cargan dinámicamente desde <span class="font-mono">https://dog.ceo/api/breeds/image/random/5</span>.
+          </p>
+        </div>
+
+        <button id="next-image" class="px-3 py-2 border rounded-lg bg-white hover:bg-slate-50">▶</button>
+      </div>
+    </section>
+
+    <!-- Sección: Items procesados por el pipeline (API local) -->
+    <section>
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-2xl font-semibold">Items procesados (API local)</h2>
+        <!-- Si quieres un botón para forzar el pipeline, luego podemos conectar aquí -->
+        <!-- <button id="run-pipeline" class="px-4 py-2 rounded-lg bg-black text-white">Ejecutar pipeline</button> -->
+      </div>
+
+      <div id="api-local" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- Se llena dinámicamente desde /static/js/main.js -->
+      </div>
+    </section>
+
+    <!-- Info -->
+    <section class="text-sm text-slate-600">
+      <h3 class="font-semibold mb-2">Notas</h3>
+      <ul class="list-disc pl-5 space-y-1">
+        <li>La API local expone <code class="font-mono">/api/cleaned</code> (GET) para esta grilla.</li>
+        <li>El backend sirve este frontend desde <code class="font-mono">/static</code>. Página principal en <code class="font-mono">/</code>.</li>
+        <li>Puedes probar endpoints y esquemas desde <a class="underline hover:text-slate-900" href="/docs">/docs</a>.</li>
+      </ul>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t">
+    <div class="max-w-5xl mx-auto px-4 py-6 text-sm text-slate-600">
+      Hecho con FastAPI + Tailwind. Entrega académica.
+    </div>
+  </footer>
+
+  <!-- JS (ESM): main.js importa api_local.js -->
+  <script type="module" src="/static/js/main.js"></script>
+</body>
+</html>

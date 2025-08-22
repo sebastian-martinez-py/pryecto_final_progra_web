@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Agregar nuevo</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>📝 Agregar nuevo registro</h1>
+    <form id="item-form">
+      <input type="text" name="title" placeholder="Título" required>
+      <input type="text" name="description" placeholder="Descripción" required>
+      <input type="text" name="image_url" placeholder="URL de imagen" required>
+      <button type="submit">Guardar</button>
+    </form>
+    <div style="text-align:center;">
+      <a href="/" class="button">⬅️ Volver</a>
+    </div>
+  </div>
+  <script type="module" src="/static/js/form_handler.js"></script>
+</body>
+</html>
+
