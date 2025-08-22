@@ -1,62 +1,31 @@
-name: Docker Publish
+name: CI
 
 on:
   push:
-    branches: [ "main" ]
-    # dispara solo cuando cambie algo relevante
-    paths:
-      - "Backend/**"
-      - ".github/workflows/docker-publish.yml"
-  workflow_dispatch: {}  # permite lanzarlo manualmente desde Actions
-
-env:
-  IMAGE_NAME: proyecto-web-backend
+  pull_request:
 
 jobs:
-  build-and-push:
+  build-and-lint:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Multi-arch (opcional pero recomendado)
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          python-version: "3.11"
 
-      - name: Build and push (latest + sha)
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: Backend/Dockerfile
-          # Si no necesitas multi-arch, elimina esta línea
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      - name: Install deps
+        run: pip install -r Backend/requirements.txt
 
-      # Etiqueta adicional cuando hagas un release con tag (v1.0.0, etc.)
-      - name: Tag with release version
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: Backend/Dockerfile
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.ref_name }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      - name: Smoke test imports
+        shell: bash
+        run: |
+          python - <<'PY'
+          import importlib
+          for m in ["fastapi","uvicorn","sqlalchemy"]:
+              importlib.import_module(m)
+          print("Deps OK")
+          PY
