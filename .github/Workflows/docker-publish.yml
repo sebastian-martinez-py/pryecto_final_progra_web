@@ -7,7 +7,7 @@ on:
       - "Backend/**"
       - "Backend/Dockerfile"
       - ".github/workflows/docker-publish.yml"
-  workflow_dispatch: {}
+  workflow_dispatch:
 
 env:
   IMAGE_NAME: proyecto-web-backend
@@ -43,3 +43,4 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
