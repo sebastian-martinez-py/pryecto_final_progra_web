@@ -1,0 +1,25 @@
+version: "3.9"
+
+services:
+  db:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: Coco197209
+      MYSQL_DATABASE: TrabajoFinal
+    ports:
+      - "3306:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+
+  api:
+    image: sebastianmartinezpy/proyecto-web-backend:latest
+    restart: always
+    env_file: .env    # usa la misma conexión a MySQL
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+volumes:
+  dbdata:
