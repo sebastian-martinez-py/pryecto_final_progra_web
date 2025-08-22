@@ -1,0 +1,13 @@
+name: Test Workflow
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  hello:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print Hello
+        run: echo "✅ Workflow detectado y corriendo"
