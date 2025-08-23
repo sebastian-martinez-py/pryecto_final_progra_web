@@ -39,7 +39,7 @@ def on_startup():
 static_dir = pathlib.Path(__file__).parent / "static"
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
-@app.get("/")
+@app.get("/", include_in_schema=False)
 def serve_index():
     return FileResponse(static_dir / "index.html")
 

@@ -1,80 +1,136 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Proyecto Final – Programación Web</title>
-
-  <!-- Tailwind por CDN (para la entrega; en producción puedes compilarlo) -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <meta name="description" content="Frontend mínimo para consumir API externa (slideshow) y API local (items procesados) del Proyecto Final." />
+  <title>Adopta CR — Comunidad de Adopción y Mascotas Perdidas</title>
+  <link rel="stylesheet" href="css/styles.css" />
 </head>
-<body class="bg-slate-50 text-slate-900">
-  <!-- Header -->
-  <header class="bg-white border-b">
-    <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-      <h1 class="text-xl md:text-2xl font-bold">Proyecto Final – Programación Web</h1>
-      <nav class="text-sm text-slate-600">
-        <a href="/docs" class="hover:text-slate-900 underline">Swagger /docs</a>
-      </nav>
+<body>
+  <header>
+    <div class="hero">
+      <div class="inner">
+        <span class="badge">🐶 Comunidad • Adopción • Mascotas Perdidas</span>
+        <h1 class="title">Adopta CR</h1>
+        <p class="lead">Somos una comunidad que conecta <strong>familias amorosas</strong> con perritos en busca de hogar y ayuda a <strong>reunir mascotas perdidas</strong> con sus dueños. Publica, adopta, comparte. 💚</p>
+        <div class="cta-row">
+          <button class="btn btn-primary" id="ctaAdoptar">Quiero adoptar</button>
+          <button class="btn btn-secondary" id="ctaPerdido">Reportar mascota perdida</button>
+        </div>
+      </div>
     </div>
+    <nav>
+      <div class="container nav-inner">
+        <div class="brand">🐾 <span>Adopta CR</span></div>
+        <div class="menu">
+          <div class="dropdown" id="menuActions">
+            <button class="dropdown-toggle">Acciones ▾</button>
+            <div class="dropdown-menu">
+              <button data-action="adoptar">Explorar para adoptar</button>
+              <button data-action="generar">Inventar perrito (API externa)</button>
+              <button data-action="perdido">Anunciar mascota perdida</button>
+              <button data-action="recargar">Recargar publicaciones</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
   </header>
 
-  <!-- Contenido -->
-  <main class="max-w-5xl mx-auto px-4 py-8 space-y-10">
-    <!-- Sección: Galería con API externa -->
-    <section>
-      <h2 class="text-2xl font-semibold mb-4">Galería (API externa: Dog CEO)</h2>
+  <main class="container">
+    <section class="panels">
+      <div class="panel" id="about">
+        <h2>¿Quiénes somos?</h2>
+        <p class="muted">Adopta CR es un proyecto comunitario para <strong>adopción responsable</strong> y <strong>reporte de mascotas perdidas</strong>. Aquí puedes publicar tu aviso de pérdida con foto, o descubrir perritos listos para encontrar un hogar. También generamos fichas de adopción con una <em>API externa</em> de imágenes (Dog CEO) para dar visibilidad y dinamismo a la comunidad. 🐕‍🦺</p>
+      </div>
 
-      <div class="flex items-center gap-3">
-        <button id="prev-image" class="px-3 py-2 border rounded-lg bg-white hover:bg-slate-50">◀</button>
-
-        <div class="flex-1">
-          <div class="aspect-[16/9] w-full overflow-hidden rounded-2xl bg-slate-200">
-            <img id="slide-image" src="" alt="slide" class="w-full h-full object-cover" />
+      <!-- Panel: Acciones rápidas -->
+      <div class="panel">
+        <div class="row">
+          <div class="grow">
+            <h2>Acciones rápidas</h2>
+            <p class="muted">Elige qué quieres hacer hoy.</p>
           </div>
-          <p class="mt-2 text-sm text-slate-600">
-            * Las imágenes se cargan dinámicamente desde <span class="font-mono">https://dog.ceo/api/breeds/image/random/5</span>.
-          </p>
+          <div class="row">
+            <button class="btn btn-primary" id="btnGenerar">🐶 Inventar perrito (API)</button>
+            <button class="btn btn-secondary" id="btnPerdido">📢 Anunciar perdido</button>
+          </div>
         </div>
-
-        <button id="next-image" class="px-3 py-2 border rounded-lg bg-white hover:bg-slate-50">▶</button>
-      </div>
-    </section>
-
-    <!-- Sección: Items procesados por el pipeline (API local) -->
-    <section>
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-2xl font-semibold">Items procesados (API local)</h2>
-        <!-- Si quieres un botón para forzar el pipeline, luego podemos conectar aquí -->
-        <!-- <button id="run-pipeline" class="px-4 py-2 rounded-lg bg-black text-white">Ejecutar pipeline</button> -->
       </div>
 
-      <div id="api-local" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <!-- Se llena dinámicamente desde /static/js/main.js -->
+      <!-- Panel: Formulario perdido -->
+      <div class="panel" id="panelPerdido" hidden>
+        <h2>Reportar mascota perdida</h2>
+        <p class="muted">Completa los datos y publica el aviso. Usa una imagen clara y agrega contactos.</p>
+        <form id="formPerdido" class="grid two">
+          <div>
+            <label>Nombre de la mascota</label>
+            <input name="nombre" placeholder="Luna, Rocky, Toby..." required />
+          </div>
+          <div>
+            <label>Zona / Cantón</label>
+            <input name="zona" placeholder="San José, Montes de Oca..." required />
+          </div>
+          <div class="two" style="grid-column:1/-1">
+            <label>Descripción</label>
+            <textarea name="desc" placeholder="Se perdió el 20/08 cerca del parque. Lleva collar rojo, es muy dócil..."></textarea>
+          </div>
+          <div>
+            <label>Imagen (URL)</label>
+            <input name="img" placeholder="https://..." required />
+            <div class="help">Tip: súbela a un host de imágenes y pega el enlace directo.</div>
+          </div>
+          <div>
+            <label>Contacto (nombre)</label>
+            <input name="contacto" placeholder="Tu nombre" required />
+          </div>
+          <div>
+            <label>Teléfono / WhatsApp</label>
+            <input name="tel" placeholder="+506 8888-8888" required />
+          </div>
+          <div>
+            <label>Correo</label>
+            <input type="email" name="mail" placeholder="alguien@correo.com" />
+          </div>
+          <div style="grid-column:1/-1;display:flex;gap:10px;align-items:center">
+            <button type="submit" class="btn btn-primary">Publicar aviso</button>
+            <span id="msgPerdido" class="muted"></span>
+          </div>
+        </form>
       </div>
-    </section>
 
-    <!-- Info -->
-    <section class="text-sm text-slate-600">
-      <h3 class="font-semibold mb-2">Notas</h3>
-      <ul class="list-disc pl-5 space-y-1">
-        <li>La API local expone <code class="font-mono">/api/cleaned</code> (GET) para esta grilla.</li>
-        <li>El backend sirve este frontend desde <code class="font-mono">/static</code>. Página principal en <code class="font-mono">/</code>.</li>
-        <li>Puedes probar endpoints y esquemas desde <a class="underline hover:text-slate-900" href="/docs">/docs</a>.</li>
-      </ul>
+      <!-- Panel: Listados -->
+      <div class="panel" id="panelListas">
+        <div class="row" style="justify-content:space-between;align-items:end">
+          <div>
+            <h2>Publicaciones</h2>
+            <p class="muted">Explora adoptables y avisos de pérdidas publicados por la comunidad.</p>
+          </div>
+          <div class="row">
+            <button class="btn btn-secondary" id="btnReload">Recargar</button>
+          </div>
+        </div>
+        <div class="sep"></div>
+        <h3>🐕 Adoptables</h3>
+        <div class="cards" id="cardsAdoptables"></div>
+        <div class="sep"></div>
+        <h3>📢 Perdidos</h3>
+        <div class="cards" id="cardsPerdidos"></div>
+      </div>
     </section>
   </main>
 
-  <!-- Footer -->
-  <footer class="border-t">
-    <div class="max-w-5xl mx-auto px-4 py-6 text-sm text-slate-600">
-      Hecho con FastAPI + Tailwind. Entrega académica.
+  <!-- Modal contacto -->
+  <dialog id="modalContacto">
+    <div class="modal-head"><strong>Contacto de adopción</strong></div>
+    <div class="modal-body">
+      <div id="contactoContenido"></div>
     </div>
-  </footer>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="cerrarModal">Cerrar</button>
+    </div>
+  </dialog>
 
-  <!-- JS (ESM): main.js importa api_local.js -->
-  <script type="module" src="/static/js/main.js"></script>
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>
