@@ -18,4 +18,4 @@ ENV USE_APSCHEDULER=0
 
 # 4) Arranque: main.py está en /app y hace imports absolutos (models, crud, etc.)
 EXPOSE 8000
-CMD ["uvicorn","main:app","--host","0.0.0.0","--port","8000"]
+CMD ["uvicorn","backend.main:app","--host","0.0.0.0","--port","8000"]
