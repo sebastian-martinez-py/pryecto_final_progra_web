@@ -1,19 +1,24 @@
 services:
-  api:
-    image: sebastianmartinezpy/proyecto-web-backend:latest
-    working_dir: /app/Backend
-    command: ["uvicorn","main:app","--host","0.0.0.0","--port","8000"]
-    env_file: .env
-    depends_on:
-      - mysql_db
-    ports:
-      - "8000:8000"
-
-  mysql_db:
+  db:
     image: mysql:8
-    container_name: mysql_db
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: Coco197209
       MYSQL_DATABASE: TrabajoFinal
     ports:
-      - "3310:3306"
+      - "3310:3306"   # usa 3310 en tu host para evitar conflicto
+    volumes:
+      - dbdata:/var/lib/mysql
+
+  api:
+    build: .
+    container_name: backend_api
+    restart: always
+    env_file: .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+volumes:
+  dbdata:
