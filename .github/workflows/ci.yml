@@ -18,7 +18,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install deps
-        run: pip install -r Backend/requirements.txt
+        run: pip install -r backend/requirements.txt   # <- corregido
 
       - name: Smoke test imports
         shell: bash
@@ -27,5 +27,5 @@ jobs:
           import importlib
           for m in ["fastapi","uvicorn","sqlalchemy"]:
               importlib.import_module(m)
-          print("Deps OK ✅")
+          print("Deps OK")
           PY

@@ -4,8 +4,8 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - "backend/**"
-      - "backend/Dockerfile"
+      - "backend/**"             # <- corregido
+      - "backend/Dockerfile"     # <- corregido
       - ".github/workflows/docker-publish.yml"
   workflow_dispatch:
 
@@ -35,9 +35,11 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: Backend/Dockerfile
-          platforms: linux/amd64
+          file: backend/Dockerfile     # <- corregido
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest
             ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
