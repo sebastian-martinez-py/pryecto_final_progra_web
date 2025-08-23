@@ -1,8 +1,5 @@
-# pipeline/flow.py
-# NEW: flujo Prefect que reusa el pipeline legacy.
-
 from prefect import flow, task
-from Backend.pipeline import run_pipeline
+from backend.pipeline import run_pipeline
 
 @task
 def etl_task():

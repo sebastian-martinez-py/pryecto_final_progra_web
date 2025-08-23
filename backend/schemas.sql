@@ -1,29 +1,23 @@
--- 1) Crear y usar tu base de datos
-CREATE DATABASE IF NOT EXISTS proyecto_web
+CREATE DATABASE IF NOT EXISTS TrabajoFinal
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
-USE proyecto_web;
+USE TrabajoFinal;
 
--- 2) Tabla RAW (la que ya usa tu CRUD)
 CREATE TABLE IF NOT EXISTS items (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  title VARCHAR(255) NOT NULL,
-  description TEXT NOT NULL,
-  image_url VARCHAR(512) NOT NULL
+  title VARCHAR(200) NOT NULL,
+  description VARCHAR(1000),
+  image_url VARCHAR(500),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 3) Tabla CLEANED (resultado del pipeline)
 CREATE TABLE IF NOT EXISTS items_cleaned (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  title VARCHAR(255) NOT NULL,
-  description TEXT NOT NULL,
-  image_url VARCHAR(512) NOT NULL
+  title VARCHAR(200) NOT NULL,
+  description VARCHAR(1000),
+  image_url VARCHAR(500),
+  source_id INT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_source
+    FOREIGN KEY (source_id) REFERENCES items(id)
 );
-
-
--- 5) Verifica que existan las tablas
-SHOW TABLES;
-
--- 6) Ver datos de RAW (y luego de CLEANED cuando corras el pipeline)
-SELECT * FROM items;
-SELECT * FROM items_cleaned;

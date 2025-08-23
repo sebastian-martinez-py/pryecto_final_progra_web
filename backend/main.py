@@ -1,38 +1,28 @@
 # backend/main.py
-# API REST completa y coherente con el frontend
-
-import os, atexit
+import os, atexit, pathlib
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
-# IMPORTS CORREGIDOS (absolutos con el paquete backend)
-import models, database, crud, schemas
-from pipeline import run_pipeline
+from backend import database, crud, schemas, models
+from backend.pipeline import run_pipeline
 
-USE_APSCHEDULER = os.getenv("USE_APSCHEDULER", "0") == "1"  # opcional
+USE_APSCHEDULER = os.getenv("USE_APSCHEDULER", "0") == "1"
 
-app = FastAPI(title="Proyecto Web - Final")
+app = FastAPI(title="Proyecto Final – Programación Web")
 
-# ================= CORS =================
+# CORS (si usas front aparte)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # en prod mejor restringir
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# ================= Estáticos =================
-STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
-if os.path.isdir(STATIC_DIR):
-    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
-
-# ================= DB =================
-models.Base.metadata.create_all(bind=database.engine)
-
+# --- DB dependency ---
 def get_db():
     db = database.SessionLocal()
     try:
@@ -40,20 +30,25 @@ def get_db():
     finally:
         db.close()
 
-# ================= RUTAS =================
-@app.get("/", include_in_schema=False)
-def serve_index():
-    index_html = os.path.join(STATIC_DIR, "index.html")
-    if os.path.exists(index_html):
-        return FileResponse(index_html)
-    return {"ok": True, "message": "API running. Visita /docs"}
+# --- Tablas al arranque ---
+@app.on_event("startup")
+def on_startup():
+    models.Base.metadata.create_all(bind=database.engine)
 
-# ===== CRUD RAW =====
-@app.get("/api/items", response_model=list[schemas.Item])
+# --- Static (frontend mínimo en backend/static) ---
+static_dir = pathlib.Path(__file__).parent / "static"
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
+@app.get("/")
+def serve_index():
+    return FileResponse(static_dir / "index.html")
+
+# --- CRUD /api/items ---
+@app.get("/api/items")
 def list_items(db: Session = Depends(get_db)):
     return crud.get_items(db)
 
-@app.post("/api/items", response_model=schemas.Item, status_code=201)
+@app.post("/api/items")
 def create_item(item: schemas.ItemCreate, db: Session = Depends(get_db)):
     return crud.create_item(db, item)
 
@@ -61,19 +56,20 @@ def create_item(item: schemas.ItemCreate, db: Session = Depends(get_db)):
 def delete_item(item_id: int, db: Session = Depends(get_db)):
     ok = crud.delete_item(db, item_id)
     if not ok:
-        raise HTTPException(404, "Ítem no encontrado")
+        raise HTTPException(status_code=404, detail="Item not found")
+    return
 
-# ===== CLEANED =====
-@app.get("/api/cleaned", response_model=list[schemas.ItemCleaned])
-def get_cleaned(db: Session = Depends(get_db)):
+# --- Vista de cleaned ---
+@app.get("/api/cleaned")
+def list_cleaned(db: Session = Depends(get_db)):
     return crud.get_items_cleaned(db)
 
-# ===== PIPELINE (manual) =====
+# --- Pipeline manual ---
 @app.post("/api/pipeline/run")
 def run_pipeline_now():
     return run_pipeline()
 
-# ===== Scheduler opcional =====
+# --- Scheduler opcional ---
 if USE_APSCHEDULER:
     from apscheduler.schedulers.background import BackgroundScheduler
     scheduler = BackgroundScheduler()

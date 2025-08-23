@@ -5,20 +5,19 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: Coco197209
       MYSQL_DATABASE: TrabajoFinal
-    ports:
-      - "3310:3306"   # usa 3310 en tu host para evitar conflicto
-    volumes:
-      - dbdata:/var/lib/mysql
+    ports: ["3310:3306"]
+    volumes: [ "dbdata:/var/lib/mysql" ]
 
   api:
-    build: .
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: backend_api
     restart: always
     env_file: .env
-    ports:
-      - "8000:8000"
-    depends_on:
-      - db
+    ports: ["8000:8000"]
+    depends_on: [ db ]
 
 volumes:
   dbdata:
+

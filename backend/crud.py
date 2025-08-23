@@ -1,20 +1,18 @@
-# Backend/crud.py
-# CHANGE: funciones CRUD claras y tipadas.
-
+# backend/crud.py
 from sqlalchemy.orm import Session
-from . import models, schemas
+from backend import models, schemas
 
-def get_items(db: Session) -> list[models.Item]:
+def get_items(db: Session):
     return db.query(models.Item).order_by(models.Item.id.desc()).all()
 
-def get_item(db: Session, item_id: int) -> models.Item | None:
+def get_item(db: Session, item_id: int):
     return db.query(models.Item).filter(models.Item.id == item_id).first()
 
-def create_item(db: Session, item: schemas.ItemCreate) -> models.Item:
+def create_item(db: Session, item: schemas.ItemCreate):
     obj = models.Item(
         title=item.title.strip(),
         description=(item.description or "").strip() or None,
-        image_url=str(item.image_url) if item.image_url else None,
+        image_url=item.image_url,
     )
     db.add(obj)
     db.commit()
@@ -29,6 +27,5 @@ def delete_item(db: Session, item_id: int) -> bool:
     db.commit()
     return True
 
-def get_items_cleaned(db: Session) -> list[models.ItemCleaned]:
+def get_items_cleaned(db: Session):
     return db.query(models.ItemCleaned).order_by(models.ItemCleaned.id.desc()).all()
-

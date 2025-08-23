@@ -1,6 +1,4 @@
-// Backend/static/js/api_local.js
-// CHANGE: rutas /api coherentes con el backend.
-
+// backend/static/js/api_local.js
 export async function ejecutarPipeline() {
   const r = await fetch('/api/pipeline/run', { method: 'POST' });
   if (!r.ok) throw new Error(await r.text());
@@ -33,3 +31,4 @@ export async function deleteItem(id) {
   const r = await fetch(`/api/items/${id}`, { method: 'DELETE' });
   if (!r.ok) throw new Error(await r.text());
 }
+
