@@ -9,8 +9,8 @@ from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 # IMPORTS CORREGIDOS (absolutos con el paquete backend)
-from backend import models, database, crud, schemas
-from backend.pipeline import run_pipeline
+import models, database, crud, schemas
+from pipeline import run_pipeline
 
 USE_APSCHEDULER = os.getenv("USE_APSCHEDULER", "0") == "1"  # opcional
 
