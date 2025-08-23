@@ -1,21 +1,22 @@
-version: "3.9"
-
 services:
   db:
     image: mysql:8
+    container_name: mysql_db
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: Coco197209
       MYSQL_DATABASE: TrabajoFinal
     ports:
-      - "3306:3306"
+      - "3310:3306"     # Cambié a 3310 para no chocar con tu MySQL local
     volumes:
       - dbdata:/var/lib/mysql
 
   api:
     image: sebastianmartinezpy/proyecto-web-backend:latest
+    container_name: backend_api
     restart: always
-    env_file: .env
+    environment:
+      DATABASE_URL: mysql+pymysql://root:Coco197209@db:3306/TrabajoFinal
     ports:
       - "8000:8000"
     depends_on:
