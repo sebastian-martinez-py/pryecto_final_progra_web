@@ -1,4 +1,4 @@
-# Backend/main.py
+# backend/main.py
 # API REST completa y coherente con el frontend
 
 import os, atexit
@@ -8,9 +8,9 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
-# IMPORTS CAMBIADOS a absolutos (no relativos)
-import models, database, crud, schemas
-from pipeline import run_pipeline
+# IMPORTS CORREGIDOS (absolutos con el paquete backend)
+from backend import models, database, crud, schemas
+from backend.pipeline import run_pipeline
 
 USE_APSCHEDULER = os.getenv("USE_APSCHEDULER", "0") == "1"  # opcional
 
