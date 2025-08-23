@@ -27,5 +27,5 @@ jobs:
           import importlib
           for m in ["fastapi","uvicorn","sqlalchemy"]:
               importlib.import_module(m)
-          print("Deps OK")
+          print("Deps OK ✅")
           PY

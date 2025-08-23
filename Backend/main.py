@@ -1,5 +1,5 @@
 # Backend/main.py
-# CHANGE: API REST completa y coherente con el frontend.
+# API REST completa y coherente con el frontend
 
 import os, atexit
 from fastapi import FastAPI, Depends, HTTPException
@@ -7,27 +7,30 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
-from . import models, database, crud, schemas
-from .pipeline import run_pipeline
 
-USE_APSCHEDULER = os.getenv("USE_APSCHEDULER", "0") == "1"  # CHANGE: opcional
+# IMPORTS CAMBIADOS a absolutos (no relativos)
+import models, database, crud, schemas
+from pipeline import run_pipeline
+
+USE_APSCHEDULER = os.getenv("USE_APSCHEDULER", "0") == "1"  # opcional
 
 app = FastAPI(title="Proyecto Web - Final")
 
-# CORS
+# ================= CORS =================
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # CHANGE: restringe en prod
+    allow_origins=["*"],  # en prod mejor restringir
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Estáticos (sirve /static y /)
+# ================= Estáticos =================
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
 if os.path.isdir(STATIC_DIR):
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
+# ================= DB =================
 models.Base.metadata.create_all(bind=database.engine)
 
 def get_db():
@@ -37,6 +40,7 @@ def get_db():
     finally:
         db.close()
 
+# ================= RUTAS =================
 @app.get("/", include_in_schema=False)
 def serve_index():
     index_html = os.path.join(STATIC_DIR, "index.html")
@@ -69,7 +73,7 @@ def get_cleaned(db: Session = Depends(get_db)):
 def run_pipeline_now():
     return run_pipeline()
 
-# ===== Scheduler opcional mientras migras a Prefect =====
+# ===== Scheduler opcional =====
 if USE_APSCHEDULER:
     from apscheduler.schedulers.background import BackgroundScheduler
     scheduler = BackgroundScheduler()

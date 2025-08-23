@@ -5,5 +5,5 @@ pydantic
 mysql-connector-python
 pymysql
 APScheduler
-dotenv
+python-dotenv
 prefect
