@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Adopta CR — Comunidad de Adopción y Mascotas Perdidas</title>
-  <link rel="stylesheet" href="/static/css/styles.css?v=1" />
+  <link rel="stylesheet" href="/static/css/styles.css?v=2" />
   <link rel="icon" href="/static/favicon.ico">
   <meta name="description" content="Comunidad de adopción de perros y reporte de mascotas perdidas.">
 </head>
@@ -21,32 +21,26 @@
         </div>
       </div>
     </div>
-    <nav>
-      <div class="container nav-inner">
-        <div class="brand">🐾 <span>Adopta CR</span></div>
-        <div class="menu">
-          <div class="dropdown" id="menuActions">
-            <button class="dropdown-toggle">Acciones ▾</button>
-            <div class="dropdown-menu">
-              <button data-action="adoptar">Explorar para adoptar</button>
-              <button data-action="generar">Inventar perrito (API externa)</button>
-              <button data-action="perdido">Anunciar mascota perdida</button>
-              <button data-action="recargar">Recargar publicaciones</button>
-            </div>
-          </div>
-        </div>
+
+    <!-- Tabs -->
+    <nav class="tabs">
+      <div class="container tabs-inner">
+        <button class="tab active" data-tab="principal">Principal</button>
+        <button class="tab" data-tab="buscar">Buscar/Editar contacto</button>
+        <a class="tab link" href="/docs" target="_blank">Swagger /docs</a>
       </div>
     </nav>
   </header>
 
   <main class="container">
-    <section class="panels">
+    <!-- PRINCIPAL -->
+    <section class="panels tab-panel" id="tab-principal">
       <div class="panel" id="about">
         <h2>¿Quiénes somos?</h2>
         <p class="muted">Adopta CR es un proyecto comunitario para <strong>adopción responsable</strong> y <strong>reporte de mascotas perdidas</strong>. Aquí puedes publicar tu aviso de pérdida con foto, o descubrir perritos listos para encontrar un hogar. También generamos fichas de adopción con una <em>API externa</em> de imágenes (Dog CEO) para dar visibilidad y dinamismo a la comunidad. 🐕‍🦺</p>
       </div>
 
-      <!-- Panel: Acciones rápidas -->
+      <!-- Acciones rápidas -->
       <div class="panel">
         <div class="row">
           <div class="grow">
@@ -60,10 +54,9 @@
         </div>
       </div>
 
-      <!-- Panel: Formulario perdido -->
+      <!-- Form perdido -->
       <div class="panel" id="panelPerdido" hidden>
         <h2>Reportar mascota perdida</h2>
-        <p class="muted">Completa los datos y publica el aviso. Usa una imagen clara y agrega contactos.</p>
         <form id="formPerdido" class="grid two">
           <div>
             <label>Nombre de la mascota</label>
@@ -80,7 +73,6 @@
           <div>
             <label>Imagen (URL)</label>
             <input name="img" placeholder="https://..." required />
-            <div class="help">Tip: súbela a un host de imágenes y pega el enlace directo.</div>
           </div>
           <div>
             <label>Contacto (nombre)</label>
@@ -101,7 +93,7 @@
         </form>
       </div>
 
-      <!-- Panel: Listados -->
+      <!-- Listas -->
       <div class="panel" id="panelListas">
         <div class="row" style="justify-content:space-between;align-items:end">
           <div>
@@ -120,19 +112,54 @@
         <div class="cards" id="cardsPerdidos"></div>
       </div>
     </section>
+
+    <!-- BUSCAR/EDITAR CONTACTO -->
+    <section class="panels tab-panel" id="tab-buscar" hidden>
+      <div class="panel">
+        <h2>Buscar y editar contacto por nombre de mascota</h2>
+        <form id="formBuscar" class="row" style="gap:10px">
+          <input id="qNombre" placeholder="Ej.: Luna, Rocky, Nala..." />
+          <button class="btn btn-secondary" type="submit">Buscar</button>
+        </form>
+      </div>
+      <div class="panel">
+        <h3>Resultados</h3>
+        <div id="resultados"></div>
+      </div>
+    </section>
   </main>
 
-  <!-- Modal contacto -->
+  <!-- Modal: Contactar (dejar mis datos) -->
   <dialog id="modalContacto">
-    <div class="modal-head"><strong>Contacto de adopción</strong></div>
+    <div class="modal-head"><strong>Quiero adoptar</strong></div>
     <div class="modal-body">
-      <div id="contactoContenido"></div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-secondary" id="cerrarModal">Cerrar</button>
+      <form id="formInteres" class="grid">
+        <input type="hidden" name="item_id" />
+        <div>
+          <label>Tu nombre</label>
+          <input name="person_name" required />
+        </div>
+        <div>
+          <label>Teléfono</label>
+          <input name="phone" required />
+        </div>
+        <div>
+          <label>Correo</label>
+          <input type="email" name="email" />
+        </div>
+        <div>
+          <label>Mensaje</label>
+          <textarea name="message" placeholder="Me interesa darle hogar…"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button" id="cerrarModal">Cancelar</button>
+          <button class="btn btn-primary" type="submit">Enviar interés</button>
+        </div>
+        <div class="help" id="msgInteres"></div>
+      </form>
     </div>
   </dialog>
 
-  <script type="module" defer src="/static/js/main.js?v=1"></script>
+  <script type="module" defer src="/static/js/main.js?v=2"></script>
 </body>
 </html>

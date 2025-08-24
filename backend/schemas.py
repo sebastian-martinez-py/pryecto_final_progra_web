@@ -1,29 +1,45 @@
-# Backend/schemas.py
-# CHANGE: mayor validación en modelos Pydantic.
+from typing import Optional, Literal
+from datetime import datetime
+from pydantic import BaseModel, Field, HttpUrl, EmailStr
 
-from pydantic import BaseModel, Field, HttpUrl
-from typing import Optional
+Kind = Literal["ADOPT", "LOST"]
 
 class ItemBase(BaseModel):
-    title: str = Field(..., min_length=1, max_length=200)
-    description: Optional[str] = Field(None, max_length=1000)
-    image_url: Optional[HttpUrl] = None  # CHANGE: valida URL
+    kind: Kind = "ADOPT"
+    pet_name: Optional[str] = None
+    zone: Optional[str] = None
+
+    title: str = Field(..., max_length=200)
+    description: Optional[str] = None
+    image_url: Optional[str] = None  # HttpUrl | None si quieres validar url
+
+    contact_name: Optional[str] = None
+    contact_phone: Optional[str] = None
+    contact_email: Optional[EmailStr] = None
 
 class ItemCreate(ItemBase):
     pass
 
-class Item(ItemBase):
+class ItemOut(ItemBase):
     id: int
-
+    created_at: datetime
     class Config:
         orm_mode = True
 
-class ItemCleaned(BaseModel):
-    id: int
-    title: str
-    description: Optional[str] = None
-    image_url: Optional[HttpUrl] = None
-    source_id: Optional[int] = None
+class ItemContactUpdate(BaseModel):
+    contact_name: Optional[str] = None
+    contact_phone: Optional[str] = None
+    contact_email: Optional[EmailStr] = None
 
+class InterestCreate(BaseModel):
+    person_name: str
+    phone: Optional[str] = None
+    email: Optional[EmailStr] = None
+    message: Optional[str] = None
+
+class InterestOut(InterestCreate):
+    id: int
+    item_id: int
+    created_at: datetime
     class Config:
         orm_mode = True
