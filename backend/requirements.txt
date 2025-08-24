@@ -7,3 +7,4 @@ pymysql
 APScheduler
 python-dotenv
 prefect
+email-validator>=2.1.0

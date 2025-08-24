@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gestionar contactos — Buscar por nombre de perro</title>
+  <link rel="stylesheet" href="/static/css/styles.css?v=3" />
+</head>
+<body>
+  <header>
+    <div class="hero" style="min-height:36vh">
+      <div class="inner">
+        <h1 class="title">Gestionar contactos</h1>
+        <p class="lead">Busca por <strong>nombre de perro</strong> y actualiza los datos de contacto de un aviso.</p>
+        <div class="cta-row">
+          <a href="/" class="btn btn-secondary">← Volver al inicio</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="panels">
+      <div class="panel">
+        <h2>Buscar por nombre de perro</h2>
+        <form id="formBuscar" class="grid two" style="gap:10px">
+          <div>
+            <label for="qNombre">Nombre de perro</label>
+            <input id="qNombre" placeholder="Ej.: Luna, Rocky, Nala..." />
+          </div>
+          <div style="align-self:end">
+            <button class="btn btn-secondary" type="submit">Buscar</button>
+          </div>
+        </form>
+      </div>
+      <div class="panel">
+        <h3>Resultados</h3>
+        <div id="resultados"></div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" defer src="/static/js/edit.js?v=1"></script>
+</body>
+</html>

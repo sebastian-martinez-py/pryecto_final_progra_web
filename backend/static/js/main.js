@@ -2,38 +2,39 @@
 const api = {
   async crearItem(item){
     const r = await fetch('/api/items',{
-      method:'POST', headers:{'Content-Type':'application/json'},
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
       body:JSON.stringify(item)
     });
-    if(!r.ok) throw new Error(await r.text()); return r.json();
+    if(!r.ok){ let t=''; try{t=await r.text();}catch{}; throw new Error(`HTTP ${r.status} ${t}`); }
+    return r.json();
   },
   async listarItems(){
-    const r = await fetch('/api/items'); if(!r.ok) throw new Error(await r.text()); return r.json();
+    const r = await fetch('/api/items', { cache: 'no-store', headers: { 'Cache-Control': 'no-cache' }});
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    return r.json();
   },
   async ejecutarPipeline(){
-    const r = await fetch('/api/pipeline/run',{method:'POST'}); if(!r.ok) throw new Error(await r.text()); return r.json();
+    const r = await fetch('/api/pipeline/run',{method:'POST'});
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    return r.json();
   },
   async crearInteres(itemId, data){
     const r = await fetch(`/api/items/${itemId}/interest`,{
       method:'POST', headers:{'Content-Type':'application/json'},
       body:JSON.stringify(data)
     });
-    if(!r.ok) throw new Error(await r.text()); return r.json();
+    if(!r.ok){ let t=''; try{t=await r.text();}catch{}; throw new Error(`HTTP ${r.status} ${t}`); }
+    return r.json();
   },
-  async buscarPorNombre(nombre){
-    const r = await fetch(`/api/items/search?pet_name=${encodeURIComponent(nombre)}`);
-    if(!r.ok) throw new Error(await r.text()); return r.json();
-  },
-  async actualizarContacto(itemId, data){
-    const r = await fetch(`/api/items/${itemId}/contact`,{
-      method:'PATCH', headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(data)
-    });
-    if(!r.ok) throw new Error(await r.text()); return r.json();
+  async eliminarItem(id){
+    const r = await fetch(`/api/items/${id}`, { method:'DELETE' });
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    return true;
   }
 };
 
-// Datos para generar adoptables
+// Datos helper
 const voluntario = { nombre:'Refugio Adopta CR', tel:'+506 8888-0000', mail:'contacto@adoptacr.org' };
 const dogNames = ['Luna','Rocky','Toby','Queso','Maya','Coco','Kira','Max','Nala','Bimba','Milo','Tommy','Greta'];
 
@@ -43,37 +44,84 @@ const panelPerdido = $('#panelPerdido');
 const msgPerdido = $('#msgPerdido');
 const cardsAdopt = $('#cardsAdoptables');
 const cardsLost = $('#cardsPerdidos');
-const tabs = document.querySelectorAll('.tab');
-const tabPanels = document.querySelectorAll('.tab-panel');
 
-// Tabs
-tabs.forEach(t => t.addEventListener('click', ()=>{
-  tabs.forEach(x=>x.classList.remove('active')); t.classList.add('active');
-  tabPanels.forEach(p=> p.hidden = (p.id !== `tab-${t.dataset.tab}`));
-}));
-
-$('#ctaAdoptar').addEventListener('click',()=> {
-  tabs[0].click();
-  window.scrollTo({top: document.body.scrollHeight, behavior:'smooth'});
-});
-$('#ctaPerdido').addEventListener('click', ()=>{
-  tabs[0].click();
-  mostrarPerdido();
-});
-
+$('#ctaAdoptar').addEventListener('click',()=> window.scrollTo({top: document.body.scrollHeight, behavior:'smooth'}));
+$('#ctaPerdido').addEventListener('click', ()=>{ panelPerdido.hidden=false; panelPerdido.scrollIntoView({behavior:'smooth'}); });
 $('#btnGenerar').addEventListener('click', generarPerrito);
-$('#btnPerdido').addEventListener('click', mostrarPerdido);
+$('#btnPerdido').addEventListener('click', ()=>{ panelPerdido.hidden=false; panelPerdido.scrollIntoView({behavior:'smooth'}); });
 $('#btnReload').addEventListener('click', cargarPublicaciones);
 
-function mostrarPerdido(){
-  panelPerdido.hidden = false;
-  panelPerdido.scrollIntoView({behavior:'smooth', block:'start'});
+// ======== Helpers de render ========
+function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m])); }
+
+function cardTemplate({id,kind,title,description,image_url,contact_name,contact_phone,contact_email}){
+  const isLost = kind === 'LOST';
+  return `
+  <article class="card" data-id="${id}">
+    <img loading="lazy" src="${image_url||''}" alt="${escapeHtml(title)}">
+    <div class="body">
+      <div class="row" style="justify-content:space-between">
+        <span class="chip">${isLost? '📢 Perdido' : '🐕 Adoptable'}</span>
+        <div class="row">
+          ${!isLost? `<button class="btn btn-primary" data-contact-for="${id}">Contactar</button>` : ''}
+          <button class="btn btn-danger" data-delete="${id}" title="Eliminar">Eliminar</button>
+        </div>
+      </div>
+      <h4 style="margin:10px 0 6px">${escapeHtml(title)}</h4>
+      ${description? `<p class="muted" style="white-space:pre-wrap">${escapeHtml(description)}</p>`:''}
+      ${isLost && (contact_name || contact_phone || contact_email) ? `
+        <p class="muted"><strong>Contacto del aviso:</strong> ${escapeHtml(contact_name||'')} ${escapeHtml(contact_phone||'')} ${escapeHtml(contact_email||'')}</p>` : ''
+      }
+    </div>
+  </article>`;
 }
 
-// ======== Generar adoptable (API externa) ========
+function wireCardActionsWithin(root){
+  // Contactar
+  root.querySelectorAll('button[data-contact-for]').forEach(btn=>{
+    btn.onclick = ()=>{
+      const id = btn.dataset.contactFor;
+      const form = document.getElementById('formInteres');
+      form.item_id.value = id;
+      document.getElementById('msgInteres').textContent = '';
+      modal.showModal();
+    };
+  });
+  // Eliminar
+  root.querySelectorAll('button[data-delete]').forEach(btn=>{
+    btn.onclick = async ()=>{
+      const id = btn.dataset.delete;
+      if(!confirm('¿Eliminar esta publicación? Esta acción no se puede deshacer.')) return;
+      try{
+        await api.eliminarItem(id);
+        const card = btn.closest('.card');
+        if(card) card.remove();
+      }catch(err){
+        alert('No se pudo eliminar: ' + err.message);
+        console.error(err);
+      }
+    };
+  });
+}
+
+// ======== Cargar listas (con no-store) ========
+async function cargarPublicaciones(){
+  const items = await api.listarItems();
+  const adopt = [], lost = [];
+  for(const it of items){ if(it.kind === 'ADOPT') adopt.push(it); else if(it.kind === 'LOST') lost.push(it); }
+  adopt.sort((a,b)=> (b.id||0)-(a.id||0)); lost.sort((a,b)=> (b.id||0)-(a.id||0));
+
+  cardsAdopt.innerHTML = adopt.map(cardTemplate).join('') || '<p class="muted">Aún no hay adoptables. ¡Genera uno con la API!</p>';
+  cardsLost.innerHTML  = lost.map(cardTemplate).join('')  || '<p class="muted">Sin reportes de pérdida por ahora.</p>';
+
+  wireCardActionsWithin(cardsAdopt);
+  wireCardActionsWithin(cardsLost);
+}
+
+// ======== Generar adoptable (optimista) ========
 async function generarPerrito(){
   try{
-    const dog = await fetch('https://dog.ceo/api/breeds/image/random').then(r=>r.json());
+    const dog = await fetch('https://dog.ceo/api/breeds/image/random', { cache: 'no-store' }).then(r=>r.json());
     const image_url = dog.message;
     const pet_name = dogNames[Math.floor(Math.random()*dogNames.length)];
     const title = `ADOPTA · ${pet_name}`;
@@ -82,84 +130,66 @@ async function generarPerrito(){
       kind:'ADOPT', pet_name, title, description, image_url,
       contact_name: voluntario.nombre, contact_phone: voluntario.tel, contact_email: voluntario.mail
     });
-    await api.ejecutarPipeline().catch(()=>{});
-    await cargarPublicaciones();
-    alert(`Se creó ${created.title}`);
+    // ✅ Render inmediato
+    const html = cardTemplate(created);
+    const tmp = document.createElement('div'); tmp.innerHTML = html.trim();
+    const node = tmp.firstElementChild;
+    cardsAdopt.prepend(node);
+    wireCardActionsWithin(node);
+    // Paso no crítico
+    api.ejecutarPipeline().catch(e=>console.warn('pipeline (no crítico)', e));
   }catch(err){
-    alert('No se pudo generar el perrito.'); console.error(err);
+    alert('No se pudo generar el perrito: ' + err.message);
+    console.error(err);
   }
 }
 
-// ======== Publicar perdido ========
-$('#formPerdido').addEventListener('submit', async (e)=>{
-  e.preventDefault(); msgPerdido.textContent = 'Publicando...';
-  const fd = new FormData(e.currentTarget);
+// ======== Publicar perdido (optimista) ========
+const formPerdido = document.getElementById('formPerdido');
+formPerdido.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const submitBtn = formPerdido.querySelector('button[type="submit"]');
+  submitBtn.disabled = true; submitBtn.textContent = 'Publicando…';
+  msgPerdido.textContent = '';
+
+  const fd = new FormData(formPerdido);
   const pet_name = fd.get('nombre');
   const zone = fd.get('zona');
   const title = `PERDIDO · ${pet_name} · ${zone}`;
   const description = (fd.get('desc')||'').trim();
   const image_url = fd.get('img');
+
   try{
-    await api.crearItem({
+    const created = await api.crearItem({
       kind:'LOST', pet_name, zone, title, description, image_url,
-      contact_name: fd.get('contacto'), contact_phone: fd.get('tel'), contact_email: fd.get('mail')||null
+      contact_name: fd.get('contacto'), contact_phone: fd.get('tel'),
+      contact_email: fd.get('mail') || null
     });
-    await api.ejecutarPipeline().catch(()=>{});
-    e.currentTarget.reset();
-    msgPerdido.textContent = '¡Aviso publicado!'; setTimeout(()=> msgPerdido.textContent='', 2500);
-    await cargarPublicaciones();
+
+    // ✅ Render inmediato en "Perdidos"
+    const html = cardTemplate(created);
+    const tmp = document.createElement('div'); tmp.innerHTML = html.trim();
+    const node = tmp.firstElementChild;
+    // si había mensaje "sin reportes", lo limpiamos
+    if(cardsLost.firstElementChild && cardsLost.firstElementChild.tagName === 'P') cardsLost.innerHTML = '';
+    cardsLost.prepend(node);
+    wireCardActionsWithin(node);
+
+    formPerdido.reset();
+    msgPerdido.textContent = '¡Aviso publicado!';
+    // No bloquear por pipeline/recarga
+    api.ejecutarPipeline().catch(e=>console.warn('pipeline (no crítico)', e));
+    // Refresco de seguridad (background) para que IDs/orden queden perfectos
+    setTimeout(()=> cargarPublicaciones().catch(()=>{}), 1200);
+    // Llevar al usuario a la sección
+    document.getElementById('panelListas').scrollIntoView({behavior:'smooth'});
   }catch(err){
-    msgPerdido.textContent = 'Error al publicar (ver consola)';
-    console.error(err);
+    msgPerdido.textContent = 'Error al publicar: ' + (err.message || 'ver consola');
+    console.error('crearItem falló:', err);
+  }finally{
+    submitBtn.disabled = false; submitBtn.textContent = 'Publicar aviso';
   }
 });
-
-// ======== Render ========
-function cardTemplate({id,kind,title,description,image_url,contact_name,contact_phone,contact_email}){
-  const isLost = kind === 'LOST';
-  return `
-  <article class="card">
-    <img loading="lazy" src="${image_url||''}" alt="${title}">
-    <div class="body">
-      <div class="row" style="justify-content:space-between">
-        <span class="chip">${isLost? '📢 Perdido' : '🐕 Adoptable'}</span>
-        ${!isLost? `<button class="btn btn-primary" data-contact-for="${id}">Contactar</button>` : ''}
-      </div>
-      <h4 style="margin:10px 0 6px">${title}</h4>
-      ${description? `<p class="muted" style="white-space:pre-wrap">${escapeHtml(description)}</p>`:''}
-      ${isLost && (contact_name || contact_phone || contact_email) ? `
-        <p class="muted"><strong>Contacto del aviso:</strong> ${escapeHtml(contact_name||'')} ${escapeHtml(contact_phone||'')} ${escapeHtml(contact_email||'')}</p>` : ''
-      }
-    </div>
-  </article>`;
-}
-function escapeHtml(s){
-  return String(s||'').replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));
-}
-
-async function cargarPublicaciones(){
-  const items = await api.listarItems();
-  const adopt = [], lost = [];
-  for(const it of items){
-    if(it.kind === 'ADOPT') adopt.push(it);
-    else if(it.kind === 'LOST') lost.push(it);
-  }
-  adopt.sort((a,b)=> (b.id||0)-(a.id||0));
-  lost.sort((a,b)=> (b.id||0)-(a.id||0));
-  cardsAdopt.innerHTML = adopt.map(cardTemplate).join('') || '<p class="muted">Aún no hay adoptables. ¡Genera uno con la API!</p>';
-  cardsLost.innerHTML  = lost.map(cardTemplate).join('')  || '<p class="muted">Sin reportes de pérdida por ahora.</p>';
-
-  // Botones "Contactar" -> abre modal para dejar interés
-  cardsAdopt.querySelectorAll('button[data-contact-for]').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      const id = btn.dataset.contactFor;
-      const form = document.getElementById('formInteres');
-      form.item_id.value = id;
-      document.getElementById('msgInteres').textContent = '';
-      modal.showModal();
-    });
-  });
-}
 
 // ======== Modal interés ========
 const modal = document.getElementById('modalContacto');
@@ -177,61 +207,11 @@ document.getElementById('formInteres').addEventListener('submit', async (e)=>{
   const msg = document.getElementById('msgInteres');
   try{
     await api.crearInteres(item_id, payload);
-    msg.textContent = '¡Tu interés fue enviado! La persona del anuncio podrá contactarte.';
-    setTimeout(()=> modal.close(), 1200);
+    msg.textContent = '¡Tu interés fue enviado!'; setTimeout(()=> modal.close(), 1200);
   }catch(err){
-    msg.textContent = 'Ocurrió un error al enviar tu interés.';
-    console.error(err);
+    msg.textContent = 'Ocurrió un error al enviar tu interés.'; console.error(err);
   }
 });
-
-// ======== Buscar/Editar contacto ========
-$('#formBuscar').addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  const nombre = $('#qNombre').value.trim();
-  if(!nombre) return;
-  const res = await api.buscarPorNombre(nombre);
-  const cont = $('#resultados');
-  if(res.length === 0){ cont.innerHTML = '<p class="muted">Sin resultados.</p>'; return; }
-  cont.innerHTML = res.map(r => editorContacto(r)).join('');
-  // wire guardar
-  cont.querySelectorAll('form[data-edit]').forEach(f=>{
-    f.addEventListener('submit', async (ev)=>{
-      ev.preventDefault();
-      const fd = new FormData(f);
-      const body = {
-        contact_name: fd.get('contact_name') || null,
-        contact_phone: fd.get('contact_phone') || null,
-        contact_email: fd.get('contact_email') || null,
-      };
-      const id = f.dataset.edit;
-      const out = await api.actualizarContacto(id, body);
-      f.querySelector('.help').textContent = 'Guardado ✓';
-      console.log('actualizado:', out);
-    });
-  });
-});
-
-function editorContacto(it){
-  return `
-  <article class="panel" style="margin-bottom:12px">
-    <div class="row" style="justify-content:space-between">
-      <div class="grow">
-        <strong>${escapeHtml(it.title)}</strong>
-        <div class="muted">ID: ${it.id} — ${it.kind === 'ADOPT' ? 'Adoptable' : 'Perdido'}</div>
-      </div>
-    </div>
-    <form data-edit="${it.id}" class="grid two" style="margin-top:10px">
-      <div><label>Nombre contacto</label><input name="contact_name" value="${escapeHtml(it.contact_name||'')}" /></div>
-      <div><label>Teléfono</label><input name="contact_phone" value="${escapeHtml(it.contact_phone||'')}" /></div>
-      <div><label>Correo</label><input type="email" name="contact_email" value="${escapeHtml(it.contact_email||'')}" /></div>
-      <div style="grid-column:1/-1;display:flex;gap:10px;align-items:center">
-        <button class="btn btn-primary" type="submit">Guardar cambios</button>
-        <span class="help"></span>
-      </div>
-    </form>
-  </article>`;
-}
 
 // ======== Init ========
 cargarPublicaciones();
